@@ -13,6 +13,20 @@
     var modalButtons = document.getElementById('modalButtons');
     var levelGrid = document.getElementById('levelGrid');
     var liveStatus = document.getElementById('liveStatus');
+    
+    // Main Menu Elements
+    var mainMenu = document.getElementById('mainMenu');
+    var appContainer = document.getElementById('app');
+    var playButton = document.getElementById('playButton');
+    var achievementsButton = document.getElementById('achievementsButton');
+    var settingsButton = document.getElementById('settingsButton');
+    var exitButton = document.getElementById('exitButton');
+    var robotCanvas = document.getElementById('robotCanvas');
+    var robotCtx = robotCanvas ? robotCanvas.getContext('2d') : null;
+
+    console.log('achievementsButton:', achievementsButton);
+    console.log('settingsButton:', settingsButton);
+    console.log('modal:', modal);
 
     var WIDTH = 960;
     var HEIGHT = 540;
@@ -21,7 +35,7 @@
     var ROWS = 8;
     var BOARD_X = 210;
     var BOARD_Y = 76;
-    var SAVE_KEY = 'night-shift-delivery-save-v1';
+    var SAVE_KEY = 'night-shift-delivery-save-v2';
 
     var GameState = {
       PLAYING: 'playing',
@@ -31,238 +45,10 @@
       GAME_COMPLETE: 'game_complete'
     };
 
-    function level(id, name, startMode, map, parTimeSeconds, hint, options) {
-      options = options || {};
-      return {
-        id: id,
-        name: name,
-        startMode: startMode,
-        map: map,
-        parTimeSeconds: parTimeSeconds,
-        hint: hint,
-        mobs: options.mobs || [],
-        gate: options.gate || null
-      };
-    }
+    // Load levels from levels.js
+    var LEVELS = window.LEVEL_DEFINITIONS || [];
+    var ZONE_THEMES = window.ZONE_THEMES || {};
 
-    // Difficulty ramp: learn, spikes, patrol drones, timed gates, then combinations.
-    var LEVELS = [
-      // 1–4: core Day/Night puzzle only.
-      level(1, 'First Shift', 'day', [
-        '##########',
-        '#S.NB...E#',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 14, 'Learn the purple Night path.'),
-      level(2, 'Blue Route', 'night', [
-        '##########',
-        '#S.D.B..E#',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 14, 'Blue paths appear in Day.'),
-      level(3, 'Purple Shortcut', 'day', [
-        '##########',
-        '#S..D..B.#',
-        '########N#',
-        '#E.......#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 20, 'Switch only from stable floor.'),
-      level(4, 'Double Take', 'day', [
-        '##########',
-        '#S.D....E#',
-        '###.####N#',
-        '#B......N#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 22, 'Take the battery, then find the Night lane.'),
-
-      // 5–7: static spikes arrive.
-      level(5, 'Spike Avenue', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.....B.#',
-        '##^#######',
-        '##########',
-        '##########',
-        '##########'
-      ], 26, 'Spikes restart the delivery. Keep to the safe route.'),
-      level(6, 'Sharp Turn', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.....B.#',
-        '#####^####',
-        '##########',
-        '##########',
-        '##########'
-      ], 26, 'Danger tiles are red. Do not step on them.'),
-      level(7, 'Last Safe Tile', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.B...D.#',
-        '###^######',
-        '##########',
-        '##########',
-        '##########'
-      ], 34, 'Switching on a faded path is also dangerous.'),
-
-      // 8–11: patrol drones make timing matter.
-      level(8, 'Drone Crossing', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.B.M.N.#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 38, 'Wait for the patrol drone, then cross its rail.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 6, speed: 620, offset: 0 }]
-      }),
-      level(9, 'Parcel Patrol', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.B.MD..#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 40, 'Drones loop back and forth. There is no need to rush.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 5, speed: 570, offset: 220 }]
-      }),
-      level(10, 'Long Way Home', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.B.MN..#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 40, 'Watch the drone before taking the narrow lane.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 6, speed: 530, offset: 100 }]
-      }),
-      level(11, 'Sunset Circuit', 'day', [
-        '##########',
-        '#S.D.....#',
-        '###.####N#',
-        '#B..M...N#',
-        '#######DB#',
-        '#######E##',
-        '##########',
-        '##########'
-      ], 48, 'The drone patrols an early route; the exit is lower down.', {
-        mobs: [{ x: 4, y: 3, axis: 'x', min: 3, max: 5, speed: 500, offset: 130 }]
-      }),
-
-      // 12–14: blinking gates need patience.
-      level(12, 'Signal Garden', 'night', [
-        '##########',
-        '#S.N.....#',
-        '###.####D#',
-        '#B...T..D#',
-        '#######NB#',
-        '#######E##',
-        '##########',
-        '##########'
-      ], 52, 'Yellow gates open and close. Wait for the bright opening.', {
-        gate: { period: 2400, openFor: 1320, offset: 0 }
-      }),
-      level(13, 'Three Stops', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#...B.TD.#',
-        '####N#####',
-        '#E..B....#',
-        '###^######',
-        '##########'
-      ], 58, 'Gates, spikes, and phase paths must be read together.', {
-        gate: { period: 2300, openFor: 1220, offset: 350 }
-      }),
-      level(14, 'Blue Before Dawn', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#...B.TN.#',
-        '####D#####',
-        '#E..B....#',
-        '######^###',
-        '##########'
-      ], 58, 'Pause on safe floor, then choose the right moment.', {
-        gate: { period: 2200, openFor: 1180, offset: 150 }
-      }),
-
-      // 15–18: all systems combine.
-      level(15, 'Moonlit Detour', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#..B.M.D.#',
-        '###N######',
-        '#ETB.....#',
-        '#####^####',
-        '##########'
-      ], 66, 'The final exit gate needs one well-timed crossing.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 6, speed: 500, offset: 0 }],
-        gate: { period: 2150, openFor: 1120, offset: 340 }
-      }),
-      level(16, 'Battery Boulevard', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#..B.M.N.#',
-        '###D######',
-        '#ETB.....#',
-        '#######^##',
-        '##########'
-      ], 66, 'Drones and gates are safer when you wait on solid floor.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 6, speed: 480, offset: 200 }],
-        gate: { period: 2100, openFor: 1080, offset: 100 }
-      }),
-      level(17, 'Final Delivery', 'day', [
-        '##########',
-        '#S.D....B#',
-        '#######N##',
-        '#..B.MN..#',
-        '###D######',
-        '#ETB.....#',
-        '######^###',
-        '##########'
-      ], 72, 'Read the whole route before crossing the drone rail.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 5, speed: 460, offset: 180 }],
-        gate: { period: 2050, openFor: 1030, offset: 420 }
-      }),
-      level(18, 'Sunrise Terminal', 'night', [
-        '##########',
-        '#S.N....B#',
-        '#######D##',
-        '#..B.MD..#',
-        '###N######',
-        '#ETB.....#',
-        '####^#####',
-        '##########'
-      ], 72, 'One final route: switch, wait, dodge, and deliver.', {
-        mobs: [{ x: 5, y: 3, axis: 'x', min: 4, max: 5, speed: 440, offset: 70 }],
-        gate: { period: 1980, openFor: 980, offset: 240 }
-      })
-    ];
 
     var game = {
       state: GameState.PLAYING,
@@ -284,13 +70,58 @@
       fallAt: 0,
       transitionAt: 0,
       hintMoveVisible: true,
-      hintModeVisible: true
+      hintModeVisible: true,
+      // Achievement stats
+      stats: {
+        batteriesCollected: 0,
+        totalBatteries: 0,
+        levelsCompleted: 0,
+        modeSwitches: 0,
+        highestLevel: 1,
+        fastestLevel: null,
+        deathlessStreak: 0,
+        sessionLevels: 0,
+        spikeDeathlessStreak: 0,
+        droneDeathlessStreak: 0,
+        gatesPassed: 0,
+        starsCollected: 0,
+        level35Complete: false,
+        zone1Stars: 0,
+        zone2Stars: 0,
+        zone3Stars: 0,
+        zone4Stars: 0,
+        zone5Stars: 0,
+        dayModeTime: 0,
+        nightModeTime: 0,
+        maxRetries: 0,
+        levelsAttempted: 0,
+        currentRetries: 0,
+        totalPlayTime: 0,
+        sessionStartTime: 0
+      },
+      unlockedAchievements: {}
     };
 
     var rain = [];
     var swipeStart = null;
     var audioContext = null;
     var lastFrame = performance.now();
+
+    // Polyfill for roundRect (older browsers)
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
+    }
 
     function createRain() {
       var i;
@@ -305,17 +136,19 @@
     }
 
     function safeLoadSave() {
-      var fallback = { version: 1, unlockedLevel: 1, bestTimes: {}, audioEnabled: true };
+      var fallback = { version: 2, unlockedLevel: 1, bestTimes: {}, audioEnabled: true, stats: game.stats, unlockedAchievements: {} };
       try {
         var raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return fallback;
         var saved = JSON.parse(raw);
-        if (!saved || saved.version !== 1) return fallback;
+        if (!saved || saved.version !== 2) return fallback;
         return {
-          version: 1,
+          version: 2,
           unlockedLevel: Math.max(1, Math.min(LEVELS.length, Number(saved.unlockedLevel) || 1)),
           bestTimes: saved.bestTimes && typeof saved.bestTimes === 'object' ? saved.bestTimes : {},
-          audioEnabled: saved.audioEnabled !== false
+          audioEnabled: saved.audioEnabled !== false,
+          stats: saved.stats || fallback.stats,
+          unlockedAchievements: saved.unlockedAchievements || {}
         };
       } catch (error) {
         return fallback;
@@ -325,10 +158,12 @@
     function saveProgress() {
       try {
         localStorage.setItem(SAVE_KEY, JSON.stringify({
-          version: 1,
+          version: 2,
           unlockedLevel: game.unlockedLevel,
           bestTimes: game.bestTimes,
-          audioEnabled: game.audioEnabled
+          audioEnabled: game.audioEnabled,
+          stats: game.stats,
+          unlockedAchievements: game.unlockedAchievements
         }));
       } catch (error) {
         // Storage is optional. Gameplay continues if it is unavailable.
@@ -387,6 +222,7 @@
       game.elapsedBeforePause = 0;
       game.transitionAt = 0;
       game.fallAt = 0;
+      trackAchievement('levelStart', { levelId: game.currentLevel.id });
       hideModal();
       updateControls();
       announce('Level ' + game.currentLevel.id + ': ' + game.currentLevel.name);
@@ -546,6 +382,7 @@
       if (!game.collected[id] && game.batteries.some(function (battery) { return battery.id === id; })) {
         game.collected[id] = true;
         playSound('pickup');
+        trackAchievement('batteryCollected');
         announce('Battery collected. ' + collectedCount() + ' of ' + game.batteries.length + '.');
         if (allBatteriesCollected()) {
           playSound('unlock');
@@ -566,6 +403,7 @@
       game.mode = nextMode;
       game.transitionAt = performance.now();
       playSound('switch');
+      trackAchievement('modeSwitch');
       updateControls();
       announce(game.mode === 'day' ? 'Day mode.' : 'Night mode.');
     }
@@ -575,6 +413,7 @@
       game.state = GameState.FALLING;
       game.fallAt = performance.now();
       playSound('fall');
+      trackAchievement('death');
       announce((reason || 'Unsafe move') + '. Restarting level.');
       window.setTimeout(function () {
         if (game.state === GameState.FALLING) loadLevel(game.levelIndex);
@@ -612,10 +451,18 @@
       var id = String(game.currentLevel.id);
       var oldBest = Number(game.bestTimes[id]);
       var isBest = !oldBest || time < oldBest;
+      var beatPar = time <= game.currentLevel.parTimeSeconds;
+      
       if (isBest) game.bestTimes[id] = Number(time.toFixed(1));
       if (game.currentLevel.id < LEVELS.length) {
         game.unlockedLevel = Math.max(game.unlockedLevel, game.currentLevel.id + 1);
       }
+      
+      trackAchievement('levelComplete', { levelId: game.currentLevel.id, time: time });
+      if (beatPar && (!oldBest || oldBest > game.currentLevel.parTimeSeconds)) {
+        trackAchievement('starEarned', { levelId: game.currentLevel.id });
+      }
+      
       saveProgress();
       playSound('complete');
       if (game.currentLevel.id === LEVELS.length) {
@@ -646,9 +493,10 @@
       clearModal();
       modalTitle.textContent = 'DELIVERY COMPLETE';
       var target = game.currentLevel.parTimeSeconds;
+      var beatPar = time <= target;
       modalText.innerHTML = 'Level time: <strong>' + formatTime(time) + '</strong><br>' +
-        'Target: ' + formatTime(target) + (time <= target ? ' — beaten!' : '') + '<br>' +
-        (isBest ? 'New best time!' : 'Best time: ' + formatTime(game.bestTimes[String(game.currentLevel.id)]));
+        'Target: ' + formatTime(target) + (beatPar ? ' — beaten! ★' : '') + '<br>' +
+        (isBest ? '✨ New best time!' : 'Best time: ' + formatTime(game.bestTimes[String(game.currentLevel.id)]));
       modalButtons.appendChild(button('NEXT LEVEL', function () {
         loadLevel(game.levelIndex + 1);
       }));
@@ -677,9 +525,13 @@
       clearModal();
       modalTitle.textContent = 'PAUSED';
       modalText.textContent = game.currentLevel.name;
-      modalButtons.appendChild(button('RESUME', resumeGame));
-      modalButtons.appendChild(button('RESTART LEVEL', restartLevel, true));
-      modalButtons.appendChild(button('LEVEL SELECT', showLevelSelect, true));
+      modalButtons.appendChild(button('▶ RESUME', resumeGame));
+      modalButtons.appendChild(button('↻ RESTART', restartLevel, true));
+      modalButtons.appendChild(button('📋 LEVEL SELECT', showLevelSelect, true));
+      modalButtons.appendChild(button('🏠 MAIN MENU', function() {
+        hideModal();
+        showMainMenu();
+      }, true));
       modal.classList.remove('hidden');
       pauseButton.textContent = '▶';
       pauseButton.setAttribute('aria-label', 'Resume game');
@@ -700,21 +552,44 @@
       modalTitle.textContent = 'CITY ROUTES';
       modalText.textContent = 'Choose an unlocked delivery.';
       levelGrid.hidden = false;
-      LEVELS.forEach(function (levelData, index) {
-        var unlocked = levelData.id <= game.unlockedLevel;
-        var entry = document.createElement('button');
-        var best = Number(game.bestTimes[String(levelData.id)]);
-        entry.className = 'levelButton' + (unlocked ? '' : ' locked') + (best ? ' done' : '');
-        entry.disabled = !unlocked;
-        entry.innerHTML = unlocked
-          ? String(levelData.id) + (best ? '<span class="bestTime">' + formatTime(best) + '</span>' : '')
-          : '🔒';
-        entry.setAttribute('aria-label', unlocked ? 'Play level ' + levelData.id + ': ' + levelData.name : 'Level ' + levelData.id + ' locked');
-        if (unlocked) {
-          entry.addEventListener('click', function () { loadLevel(index); });
-        }
-        levelGrid.appendChild(entry);
+      
+      var zones = [
+        { name: 'ZONE 1: TRAINING', start: 1, end: 4 },
+        { name: 'ZONE 2: HAZARDS', start: 5, end: 10 },
+        { name: 'ZONE 3: TIMING', start: 11, end: 18 },
+        { name: 'ZONE 4: CHAOS', start: 19, end: 26 },
+        { name: 'ZONE 5: NIGHTMARE', start: 27, end: 35 }
+      ];
+      
+      zones.forEach(function (zone) {
+        var zoneLabel = document.createElement('div');
+        zoneLabel.className = 'zoneLabel';
+        zoneLabel.textContent = zone.name;
+        levelGrid.appendChild(zoneLabel);
+        
+        LEVELS.forEach(function (levelData, index) {
+          if (levelData.id >= zone.start && levelData.id <= zone.end) {
+            var unlocked = levelData.id <= game.unlockedLevel;
+            var entry = document.createElement('button');
+            var best = Number(game.bestTimes[String(levelData.id)]);
+            var starred = best && best <= levelData.parTimeSeconds;
+            entry.className = 'levelButton' + (unlocked ? '' : ' locked') + 
+                            (best ? ' done' : '') + (starred ? ' starred' : '');
+            entry.disabled = !unlocked;
+            entry.innerHTML = unlocked
+              ? String(levelData.id) + 
+                (starred ? '<span class="starBadge">★</span>' : '') +
+                (best ? '<span class="bestTime">' + formatTime(best) + '</span>' : '')
+              : '🔒';
+            entry.setAttribute('aria-label', unlocked ? 'Play level ' + levelData.id + ': ' + levelData.name : 'Level ' + levelData.id + ' locked');
+            if (unlocked) {
+              entry.addEventListener('click', function () { loadLevel(index); });
+            }
+            levelGrid.appendChild(entry);
+          }
+        });
       });
+      
       modalButtons.appendChild(button('RESUME', function () {
         if (game.state === GameState.PAUSED) resumeGame();
         else loadLevel(game.levelIndex);
@@ -916,15 +791,50 @@
       if (cell === 'D') drawIcon('sun', x + TILE / 2, y + TILE / 2 + 4, 26, game.mode === 'day' ? '#d4fbff' : '#5a708e', game.mode === 'day' ? 1 : .55);
       if (cell === 'N') drawIcon('moon', x + TILE / 2, y + TILE / 2 + 3, 28, game.mode === 'night' ? '#ffe5ff' : '#655878', game.mode === 'night' ? 1 : .55);
       if (cell === '^') {
-        ctx.fillStyle = '#ff7890';
+        // Animated glowing spikes
+        var spikeGlow = 0.15 + Math.sin(time / 300) * 0.1;
+        ctx.save();
+        ctx.shadowColor = '#ff2d5a';
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 2;
+        
+        // Base gradient for spikes
+        var spikeGrad = ctx.createLinearGradient(x, y + 17, x, y + 41);
+        spikeGrad.addColorStop(0, '#ff5577');
+        spikeGrad.addColorStop(0.6, '#ff3d5f');
+        spikeGrad.addColorStop(1, '#cc2a48');
+        ctx.fillStyle = spikeGrad;
+        
+        // Draw sharp spikes with better shape
         ctx.beginPath();
-        ctx.moveTo(x + 12, y + 41);
-        ctx.lineTo(x + 22, y + 17);
-        ctx.lineTo(x + 32, y + 41);
-        ctx.lineTo(x + 42, y + 17);
-        ctx.lineTo(x + 50, y + 41);
+        ctx.moveTo(x + 10, y + 43);
+        ctx.lineTo(x + 16, y + 14);
+        ctx.lineTo(x + 22, y + 43);
+        ctx.lineTo(x + 28, y + 16);
+        ctx.lineTo(x + 34, y + 43);
+        ctx.lineTo(x + 40, y + 14);
+        ctx.lineTo(x + 46, y + 43);
         ctx.closePath();
         ctx.fill();
+        
+        // Add highlights on spike tips
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = 'rgba(255, 180, 200, ' + (0.7 + spikeGlow) + ')';
+        ctx.beginPath();
+        ctx.arc(x + 16, y + 14, 2.5, 0, Math.PI * 2);
+        ctx.arc(x + 28, y + 16, 2.5, 0, Math.PI * 2);
+        ctx.arc(x + 40, y + 14, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Warning stripes at base
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 200, 50, 0.4)';
+        ctx.fillRect(x + 8, y + 44, 4, 3);
+        ctx.fillRect(x + 20, y + 44, 4, 3);
+        ctx.fillRect(x + 32, y + 44, 4, 3);
+        ctx.fillRect(x + 44, y + 44, 4, 3);
+        
+        ctx.restore();
       }
       if (cell === 'M') {
         ctx.strokeStyle = '#82bcff';
@@ -1260,13 +1170,315 @@
     game.unlockedLevel = save.unlockedLevel;
     game.bestTimes = save.bestTimes;
     game.audioEnabled = save.audioEnabled;
+    game.stats = save.stats || game.stats;
+    game.unlockedAchievements = save.unlockedAchievements || {};
+    game.stats.sessionStartTime = Date.now();
     game.levelsValidated = validateLevels();
     if (!game.levelsValidated) {
       console.warn('NightShiftDelivery: level validation failed. A map may be unreachable or impossible to finish.');
     }
     updateControls();
-    loadLevel(0);
-    window.requestAnimationFrame(render);
+    
+    // Show main menu on start
+    showMainMenu();
+    
+    // Menu button handlers
+    playButton.addEventListener('click', function() {
+      hideMainMenu();
+      // Start from last played level or level 0
+      var startLevel = Math.max(0, Math.min(game.unlockedLevel - 1, LEVELS.length - 1));
+      loadLevel(startLevel);
+      window.requestAnimationFrame(render);
+    });
+    
+    achievementsButton.addEventListener('click', function(e) {
+      console.log('Achievements button clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      showAchievements();
+    });
+    
+    settingsButton.addEventListener('click', function(e) {
+      console.log('Settings button clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      showSettings();
+    });
+    
+    exitButton.addEventListener('click', function() {
+      if (confirm('Exit Night Shift Delivery?')) {
+        // Save before exit
+        if (game.stats.sessionStartTime > 0) {
+          var sessionTime = Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
+          game.stats.totalPlayTime += sessionTime;
+          saveProgress();
+        }
+        window.close();
+      }
+    });
+    
+    // Save play time on page unload
+    window.addEventListener('beforeunload', function() {
+      if (game.stats.sessionStartTime > 0) {
+        var sessionTime = Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
+        game.stats.totalPlayTime += sessionTime;
+        saveProgress();
+      }
+    });
+
+    // Main Menu Functions
+    function drawMenuRobot() {
+      if (!robotCtx) return;
+      
+      var time = performance.now();
+      robotCtx.clearRect(0, 0, 200, 200);
+      
+      var cx = 100;
+      var cy = 100;
+      var bob = Math.sin(time / 500) * 5;
+      
+      // Shadow
+      robotCtx.save();
+      robotCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      robotCtx.beginPath();
+      robotCtx.ellipse(cx, 170, 30, 10, 0, 0, Math.PI * 2);
+      robotCtx.fill();
+      
+      // Robot body
+      robotCtx.translate(cx, cy + bob);
+      
+      // Glow
+      robotCtx.shadowColor = game.mode === 'night' ? '#e679ff' : '#61e4ff';
+      robotCtx.shadowBlur = 20;
+      
+      // Main body
+      robotCtx.fillStyle = '#dde5ee';
+      robotCtx.beginPath();
+      robotCtx.roundRect(-30, -30, 60, 55, 15);
+      robotCtx.fill();
+      
+      // Visor
+      robotCtx.shadowBlur = 10;
+      robotCtx.fillStyle = '#252b43';
+      robotCtx.beginPath();
+      robotCtx.roundRect(-22, -18, 44, 25, 8);
+      robotCtx.fill();
+      
+      // Eye glow
+      robotCtx.shadowBlur = 15;
+      robotCtx.fillStyle = '#80edff';
+      robotCtx.fillRect(-15, -10, 12, 10);
+      robotCtx.fillRect(3, -10, 12, 10);
+      
+      // Package
+      robotCtx.shadowBlur = 8;
+      robotCtx.fillStyle = '#ffab54';
+      robotCtx.beginPath();
+      robotCtx.roundRect(18, 12, 20, 20, 4);
+      robotCtx.fill();
+      
+      // Package tape
+      robotCtx.shadowBlur = 0;
+      robotCtx.strokeStyle = '#ff8833';
+      robotCtx.lineWidth = 2;
+      robotCtx.beginPath();
+      robotCtx.moveTo(18, 22);
+      robotCtx.lineTo(38, 22);
+      robotCtx.stroke();
+      
+      robotCtx.restore();
+      
+      // Animate continuously
+      if (mainMenu && !mainMenu.classList.contains('hidden')) {
+        requestAnimationFrame(drawMenuRobot);
+      }
+    }
+    
+    function updateMenuStats() {
+      // Update play time
+      var hours = Math.floor(game.stats.totalPlayTime / 3600);
+      var minutes = Math.floor((game.stats.totalPlayTime % 3600) / 60);
+      document.getElementById('totalPlayTime').textContent = hours + 'h ' + minutes + 'm';
+      
+      // Update levels
+      var completed = game.stats.levelsCompleted || Math.max(0, game.unlockedLevel - 1);
+      document.getElementById('levelsCompleted').textContent = completed + ' / 35';
+      
+      // Update stars
+      document.getElementById('starsEarned').textContent = game.stats.starsCollected + ' / 35';
+      
+      // Update achievements
+      var progress = window.getAchievementProgress(game.stats);
+      document.getElementById('achievementCount').textContent = progress + '%';
+    }
+    
+    function showMainMenu() {
+      mainMenu.classList.remove('hidden');
+      appContainer.style.display = 'none';
+      updateMenuStats();
+      drawMenuRobot();
+      
+      // Update play time
+      if (game.stats.sessionStartTime > 0) {
+        var sessionTime = Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
+        game.stats.totalPlayTime += sessionTime;
+      }
+      game.stats.sessionStartTime = Date.now();
+      saveProgress();
+    }
+
+    function hideMainMenu() {
+      mainMenu.classList.add('hidden');
+      appContainer.style.display = 'block';
+      game.stats.sessionStartTime = Date.now();
+    }
+
+    function showAchievements() {
+      console.log('showAchievements called!');
+      console.log('modal element:', modal);
+      clearModal();
+      modalTitle.textContent = '🏆 ACHIEVEMENTS';
+      
+      var progress = window.getAchievementProgress(game.stats);
+      var unlocked = window.getUnlockedAchievements(game.stats);
+      
+      modalText.innerHTML = '<div class="achievementProgress"><strong>Progress: ' + progress + '%</strong><div class="progressBar"><div class="progressFill" style="width:' + progress + '%">' + progress + '%</div></div></div>';
+      
+      var panel = document.createElement('div');
+      panel.id = 'achievementPanel';
+      
+      for (var id in window.ACHIEVEMENTS) {
+        var ach = window.ACHIEVEMENTS[id];
+        var isUnlocked = window.checkAchievement(id, game.stats);
+        var rarity = window.ACHIEVEMENT_RARITY[ach.rarity];
+        
+        var item = document.createElement('div');
+        item.className = 'achievementItem' + (isUnlocked ? ' unlocked' : ' locked');
+        if (isUnlocked) {
+          item.style.borderColor = rarity.glow;
+        }
+        
+        item.innerHTML = '<div class="achievementIcon">' + ach.icon + '</div>' +
+          '<div class="achievementInfo"><h4 style="color:' + (isUnlocked ? rarity.color : '#888') + '">' + ach.name + '</h4>' +
+          '<p>' + ach.description + '</p></div>';
+        
+        panel.appendChild(item);
+      }
+      
+      modalText.appendChild(panel);
+      modalButtons.appendChild(button('BACK', hideModal));
+      modal.classList.remove('hidden');
+      console.log('modal.classList after remove hidden:', modal.classList);
+      console.log('modal display style:', window.getComputedStyle(modal).display);
+    }
+
+    function showSettings() {
+      console.log('showSettings called!');
+      console.log('modal element:', modal);
+      clearModal();
+      modalTitle.textContent = '⚙ SETTINGS';
+      
+      var hours = Math.floor(game.stats.totalPlayTime / 3600);
+      var minutes = Math.floor((game.stats.totalPlayTime % 3600) / 60);
+      
+      modalText.innerHTML = '<p><strong>Sound:</strong> ' + (game.audioEnabled ? 'ON ♬' : 'OFF ×') + '</p>' +
+        '<p><strong>Play Time:</strong> ' + hours + 'h ' + minutes + 'm</p>' +
+        '<p><strong>Best Times:</strong> ' + Object.keys(game.bestTimes).length + ' levels</p>' +
+        '<p><strong>Highest Level:</strong> ' + game.unlockedLevel + '</p>' +
+        '<p><strong>Achievements:</strong> ' + window.getAchievementProgress(game.stats) + '%</p>';
+      
+      modalButtons.appendChild(button(game.audioEnabled ? '🔇 MUTE SOUND' : '🔊 UNMUTE SOUND', function() {
+        toggleSound();
+        showSettings();
+      }));
+      modalButtons.appendChild(button('🗑️ RESET PROGRESS', function() {
+        if (confirm('Reset all progress? This cannot be undone!')) {
+          localStorage.removeItem(SAVE_KEY);
+          location.reload();
+        }
+      }, true));
+      modalButtons.appendChild(button('◀ BACK', hideModal));
+      modal.classList.remove('hidden');
+      console.log('modal.classList after remove hidden:', modal.classList);
+      console.log('modal display style:', window.getComputedStyle(modal).display);
+    }
+
+    // Track achievements
+    function trackAchievement(event, data) {
+      var stats = game.stats;
+      
+      switch(event) {
+        case 'batteryCollected':
+          stats.batteriesCollected++;
+          stats.totalBatteries++;
+          break;
+        case 'levelComplete':
+          stats.levelsCompleted++;
+          stats.sessionLevels++;
+          stats.highestLevel = Math.max(stats.highestLevel, data.levelId);
+          if (data.time < (stats.fastestLevel || 999)) {
+            stats.fastestLevel = data.time;
+          }
+          if (data.levelId === 35) {
+            stats.level35Complete = true;
+          }
+          break;
+        case 'modeSwitch':
+          stats.modeSwitches++;
+          break;
+        case 'gatePassed':
+          stats.gatesPassed++;
+          break;
+        case 'death':
+          stats.deathlessStreak = 0;
+          stats.currentRetries++;
+          stats.maxRetries = Math.max(stats.maxRetries, stats.currentRetries);
+          break;
+        case 'levelStart':
+          stats.levelsAttempted = Math.max(stats.levelsAttempted, data.levelId);
+          stats.currentRetries = 0;
+          break;
+        case 'starEarned':
+          stats.starsCollected++;
+          var zone = Math.ceil(data.levelId / (data.levelId <= 4 ? 4 : data.levelId <= 10 ? 6 : data.levelId <= 18 ? 8 : data.levelId <= 26 ? 8 : 9));
+          stats['zone' + zone + 'Stars'] = (stats['zone' + zone + 'Stars'] || 0) + 1;
+          break;
+      }
+      
+      // Check for new achievements
+      for (var id in window.ACHIEVEMENTS) {
+        if (!game.unlockedAchievements[id] && window.checkAchievement(id, stats)) {
+          game.unlockedAchievements[id] = true;
+          showAchievementUnlocked(window.ACHIEVEMENTS[id]);
+        }
+      }
+      
+      saveProgress();
+    }
+
+    function showAchievementUnlocked(ach) {
+      // Show achievement notification
+      var notif = document.getElementById('achievementNotification');
+      var icon = notif.querySelector('.icon');
+      var title = document.getElementById('achNotifTitle');
+      var desc = document.getElementById('achNotifDesc');
+      
+      icon.textContent = ach.icon;
+      title.textContent = ach.name;
+      desc.textContent = ach.description;
+      
+      // Show notification
+      notif.classList.add('show');
+      
+      // Play sound and announce
+      playSound('unlock');
+      announce('Achievement unlocked: ' + ach.name);
+      
+      // Hide after 4 seconds
+      setTimeout(function() {
+        notif.classList.remove('show');
+      }, 4000);
+    }
 
     window.NightShiftDelivery = {
       levelsValidated: game.levelsValidated,

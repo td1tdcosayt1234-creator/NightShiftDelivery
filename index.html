@@ -120,7 +120,9 @@
     }
     #modal.hidden { display: none; }
     #modalCard {
-      width: min(100%, 450px);
+      width: min(100%, 520px);
+      max-height: 90%;
+      overflow-y: auto;
       padding: 28px;
       border: 1px solid rgba(207, 222, 255, .22);
       border-radius: 22px;
@@ -154,22 +156,34 @@
     .modalButton.secondary { background: #273055; }
     #levelGrid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(38px, 1fr));
+      grid-template-columns: repeat(8, minmax(36px, 1fr));
       gap: 8px;
       margin-top: 20px;
+      max-height: 420px;
+      overflow-y: auto;
     }
     .levelButton {
-      min-height: 42px;
+      min-height: 48px;
       padding: 0;
       background: #334374;
+      font-size: 13px;
+      font-weight: 700;
     }
     .levelButton.locked {
       color: #7f89ab;
       background: #1b213d;
       cursor: not-allowed;
     }
-    .levelButton.done { box-shadow: inset 0 -3px 0 #7af2ae; }
-    .bestTime { display: block; color: #aeb9df; font-size: .7rem; letter-spacing: 0; }
+    .levelButton.done { 
+      background: #3d5288;
+      box-shadow: inset 0 -3px 0 #7af2ae; 
+    }
+    .levelButton.starred { 
+      background: #4d5f8d;
+      box-shadow: inset 0 -3px 0 #ffd700; 
+    }
+    .bestTime { display: block; color: #aeb9df; font-size: .6rem; letter-spacing: 0; margin-top: 2px; }
+    .starBadge { color: #ffd700; font-size: .8rem; display: block; margin-top: -2px; }
     #liveStatus {
       position: absolute;
       width: 1px;
@@ -177,6 +191,277 @@
       overflow: hidden;
       clip: rect(0 0 0 0);
       white-space: nowrap;
+    }
+    /* Zone labels in level select */
+    .zoneLabel {
+      grid-column: 1 / -1;
+      text-align: left;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: #8b99c7;
+      padding: 8px 0 4px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      margin-top: 6px;
+    }
+    .zoneLabel:first-child { border-top: none; margin-top: 0; }
+    /* Achievement Notification */
+    #achievementNotification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120%);
+      z-index: 100;
+      min-width: 320px;
+      max-width: 420px;
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(64, 85, 173, 0.95), rgba(80, 56, 185, 0.95));
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(149, 83, 235, 0.5);
+      transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    #achievementNotification.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .achievementNotif {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+    .achievementNotif .icon {
+      font-size: 3rem;
+      text-align: center;
+      animation: achievementBounce 0.6s ease;
+    }
+    .achievementNotif .content h3 {
+      margin: 0 0 4px;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+    }
+    .achievementNotif .content h2 {
+      margin: 0 0 4px;
+      font-size: 1.3rem;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .achievementNotif .content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    @keyframes achievementBounce {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.2) rotate(-5deg); }
+      50% { transform: scale(0.9) rotate(5deg); }
+      75% { transform: scale(1.1) rotate(-3deg); }
+    }
+    /* Main Menu */
+    #mainMenu {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(160deg, #0a0d1f, #050812);
+    }
+    #mainMenu.hidden { display: none; }
+    #mainMenuCard {
+      width: min(100%, 920px);
+      height: min(90vh, 520px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      padding: 40px;
+      background: rgba(15, 20, 45, 0.8);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    #menuLeft {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+    #menuLeft h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      letter-spacing: .1em;
+      background: linear-gradient(135deg, #5579ed, #9d53eb, #ff4a8f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 4px 20px rgba(149, 83, 235, 0.4);
+    }
+    #menuLeft .subtitle {
+      color: #9fb3e6;
+      font-size: .95rem;
+      margin-bottom: 20px;
+      letter-spacing: .08em;
+    }
+    #menuRight {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+    }
+    #robotDisplay {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #robotCanvas {
+      width: 200px;
+      height: 200px;
+    }
+    #statsDisplay {
+      width: 100%;
+      padding: 20px;
+      background: rgba(32, 40, 82, 0.5);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    #statsDisplay h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      color: #f4f7ff;
+      text-align: center;
+      letter-spacing: .08em;
+    }
+    .statRow {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      font-size: .9rem;
+    }
+    .statRow:last-child { border-bottom: none; }
+    .statLabel { color: #b9c6e9; }
+    .statValue { color: #5579ed; font-weight: 700; }
+    .menuButtons {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .menuButton {
+      min-height: 56px;
+      padding: 0 24px;
+      background: linear-gradient(130deg, #4055ad, #5038b9);
+      box-shadow: 0 8px 22px rgba(64, 85, 173, .35), inset 0 0 0 1px rgba(255,255,255,.15);
+      font-size: 1.1rem;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .menuButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(64, 85, 173, .45), inset 0 0 0 1px rgba(255,255,255,.22);
+    }
+    .menuButton.primary {
+      background: linear-gradient(130deg, #5579ed, #9d53eb);
+      box-shadow: 0 8px 22px rgba(86, 93, 230, .35), inset 0 0 0 1px rgba(255,255,255,.22);
+      font-size: 1.3rem;
+    }
+    .menuButton.primary:hover {
+      box-shadow: 0 12px 32px rgba(86, 93, 230, .50), inset 0 0 0 1px rgba(255,255,255,.30);
+    }
+    @media (max-width: 768px) {
+      #mainMenuCard {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 24px;
+      }
+      #menuRight {
+        order: -1;
+      }
+      #robotCanvas {
+        width: 120px;
+        height: 120px;
+      }
+    }
+    /* Achievement Panel */
+    #achievementPanel {
+      max-height: 420px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .achievementItem {
+      display: grid;
+      grid-template-columns: 50px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: rgba(32, 40, 82, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      text-align: left;
+    }
+    .achievementItem.unlocked {
+      background: rgba(64, 85, 173, 0.4);
+      border-color: rgba(255,255,255,.15);
+    }
+    .achievementIcon {
+      font-size: 2rem;
+      text-align: center;
+    }
+    .achievementInfo h4 {
+      margin: 0 0 4px;
+      font-size: .95rem;
+      color: #f4f7ff;
+    }
+    .achievementInfo p {
+      margin: 0;
+      font-size: .8rem;
+      color: #b9c6e9;
+    }
+    .achievementItem.locked {
+      opacity: 0.4;
+    }
+    .achievementProgress {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(32, 40, 82, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .progressBar {
+      width: 100%;
+      height: 24px;
+      background: rgba(16, 20, 40, 0.8);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, #5579ed, #9d53eb);
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: .8rem;
+    }
+    /* Lives display */
+    #livesDisplay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 6px 14px;
+      font-size: .8rem;
+      font-weight: 800;
+      color: #ff8397;
+      pointer-events: none;
     }
     @media (max-width: 560px) {
       #app { padding: 9px; }
@@ -190,17 +475,66 @@
   </style>
 </head>
 <body>
-  <main id="app" aria-label="Night Shift Delivery game">
+  <!-- Achievement Notification -->
+  <div id="achievementNotification">
+    <div class="achievementNotif">
+      <div class="icon">🏆</div>
+      <div class="content">
+        <h3>Achievement Unlocked!</h3>
+        <h2 id="achNotifTitle">Title</h2>
+        <p id="achNotifDesc">Description</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Menu -->
+  <div id="mainMenu">
+    <div id="mainMenuCard">
+      <!-- Left Side: Menu -->
+      <div id="menuLeft">
+        <div>
+          <h1>NIGHT SHIFT<br>DELIVERY</h1>
+          <p class="subtitle">🌙 Phase between Day & Night 🌙</p>
+        </div>
+        <div class="menuButtons">
+          <button class="menuButton primary" id="playButton">▶ PLAY GAME</button>
+          <button class="menuButton" id="achievementsButton">🏆 ACHIEVEMENTS</button>
+          <button class="menuButton" id="settingsButton">⚙ SETTINGS</button>
+          <button class="menuButton" id="exitButton">✖ EXIT</button>
+        </div>
+      </div>
+      
+      <!-- Right Side: Robot & Stats -->
+      <div id="menuRight">
+        <div id="robotDisplay">
+          <canvas id="robotCanvas" width="200" height="200"></canvas>
+        </div>
+        <div id="statsDisplay">
+          <h3>📊 YOUR PROGRESS</h3>
+          <div class="statRow">
+            <span class="statLabel">⏱️ Play Time:</span>
+            <span class="statValue" id="totalPlayTime">0h 0m</span>
+          </div>
+          <div class="statRow">
+            <span class="statLabel">🏆 Levels Complete:</span>
+            <span class="statValue" id="levelsCompleted">0 / 35</span>
+          </div>
+          <div class="statRow">
+            <span class="statLabel">⭐ Stars Earned:</span>
+            <span class="statValue" id="starsEarned">0 / 35</span>
+          </div>
+          <div class="statRow">
+            <span class="statLabel">🎖️ Achievements:</span>
+            <span class="statValue" id="achievementCount">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="app" aria-label="Night Shift Delivery game" style="display: none;">
     <section id="gameFrame">
       <canvas id="game" width="960" height="540" aria-label="Night Shift Delivery puzzle game"></canvas>
-      <div id="modal" class="hidden" role="dialog" aria-modal="true" aria-live="polite">
-        <section id="modalCard">
-          <h2 id="modalTitle"></h2>
-          <p id="modalText"></p>
-          <div id="levelGrid" hidden></div>
-          <div id="modalButtons"></div>
-        </section>
-      </div>
     </section>
 
     <nav id="gameControls" aria-label="Game controls">
@@ -220,8 +554,9 @@
     <div id="liveStatus" aria-live="polite"></div>
   </main>
 
+  <script src="levels.js"></script>
+  <script src="achievements.js"></script>
   <script src="game.js"></script>
   
 </body>
 </html>
-

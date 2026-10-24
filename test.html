@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Button Test</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial;
+      padding: 40px;
+    }
+    button {
+      padding: 20px 40px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Button Test</h1>
+  <button id="testButton1">Test Button 1</button>
+  <button id="testButton2">Test Button 2</button>
+  <div id="output"></div>
+
+  <script>
+    var btn1 = document.getElementById('testButton1');
+    var btn2 = document.getElementById('testButton2');
+    var output = document.getElementById('output');
+
+    console.log('btn1:', btn1);
+    console.log('btn2:', btn2);
+
+    btn1.addEventListener('click', function() {
+      console.log('Button 1 clicked!');
+      output.innerHTML += '<p>Button 1 clicked at ' + new Date().toLocaleTimeString() + '</p>';
+    });
+
+    btn2.addEventListener('click', function() {
+      console.log('Button 2 clicked!');
+      output.innerHTML += '<p>Button 2 clicked at ' + new Date().toLocaleTimeString() + '</p>';
+    });
+  </script>
+</body>
+</html>
