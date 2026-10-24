@@ -36,6 +36,7 @@ No package install, asset download, network connection, or build step is require
 - Smooth difficulty progression: simple puzzles → spikes → patrol drones → timed gates → mixed final levels
 - Keyboard, touch button, and swipe controls
 - Pause, restart, level select, best-time tracking
+- Per-level target times shown on the HUD, with a "target beaten!" verdict on the completion card
 - Local progress save through localStorage
 - Original Canvas-only art and generated Web Audio tones
 - No external dependencies, remote assets, ads, account system, or outbound links

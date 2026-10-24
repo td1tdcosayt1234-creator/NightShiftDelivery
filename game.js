@@ -45,189 +45,6 @@
       };
     }
 
-    var LEGACY_LEVELS = [
-      level(1, 'First Shift', 'day', [
-        '##########',
-        '#S.NB...E#',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 14, 'Cross purple paths at Night.'),
-      level(2, 'Blue Route', 'night', [
-        '##########',
-        '#S.D.B..E#',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 14, 'Blue paths appear in Day.'),
-      level(3, 'Purple Shortcut', 'day', [
-        '##########',
-        '#S..D..B.#',
-        '########N#',
-        '#E.......#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 20, 'Switch only while standing on a stable tile.'),
-      level(4, 'Double Take', 'day', [
-        '##########',
-        '#S.D....E#',
-        '###.####N#',
-        '#B......N#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 22, 'Take the battery, then find the night lane.'),
-      level(5, 'Crosswalk', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.....B.#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 24, 'Two deliveries, two city modes.'),
-      level(6, 'Split Signal', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.....B.#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 24, 'A return route can need a different mode.'),
-      level(7, 'Last Safe Tile', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.B...D.#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 31, 'Do not switch while standing on a phase path.'),
-      level(8, 'City Blocks', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.B...N.#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 31, 'Plan a safe landing spot before every switch.'),
-      level(9, 'Parcel Alley', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#E.B..D..#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 34, 'Phase bridges lead to permanent turning pads.'),
-      level(10, 'Long Way Home', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#E.B..N..#',
-        '##########',
-        '##########',
-        '##########',
-        '##########'
-      ], 34, 'The exit opens only after every battery.'),
-      level(11, 'Sunset Circuit', 'day', [
-        '##########',
-        '#S.D.....#',
-        '###.####N#',
-        '#B......N#',
-        '#######DB#',
-        '#######E##',
-        '##########',
-        '##########'
-      ], 42, 'A safe tile lets you change direction and mode.'),
-      level(12, 'Signal Garden', 'night', [
-        '##########',
-        '#S.N.....#',
-        '###.####D#',
-        '#B......D#',
-        '#######NB#',
-        '#######E##',
-        '##########',
-        '##########'
-      ], 42, 'The city has the same rules in reverse.'),
-      level(13, 'Three Stops', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#...B..D.#',
-        '####N#####',
-        '#E..B....#',
-        '##########',
-        '##########'
-      ], 52, 'Three batteries: choose safe switching islands.'),
-      level(14, 'Blue Before Dawn', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#...B..N.#',
-        '####D#####',
-        '#E..B....#',
-        '##########',
-        '##########'
-      ], 52, 'Every colour has a matching route.'),
-      level(15, 'Moonlit Detour', 'day', [
-        '##########',
-        '#S.D.B...#',
-        '########N#',
-        '#..B...D.#',
-        '###N######',
-        '#E.B.....#',
-        '##########',
-        '##########'
-      ], 56, 'A detour can still be the correct delivery route.'),
-      level(16, 'Battery Boulevard', 'night', [
-        '##########',
-        '#S.N.B...#',
-        '########D#',
-        '#..B...N.#',
-        '###D######',
-        '#E.B.....#',
-        '##########',
-        '##########'
-      ], 56, 'Keep the next stable tile in view.'),
-      level(17, 'Final Delivery', 'day', [
-        '##########',
-        '#S.D....B#',
-        '#######N##',
-        '#..B..N..#',
-        '###D######',
-        '#E.B.....#',
-        '##########',
-        '##########'
-      ], 62, 'The fastest road is not always the safest road.'),
-      level(18, 'Sunrise Terminal', 'night', [
-        '##########',
-        '#S.N....B#',
-        '#######D##',
-        '#..B..D..#',
-        '###N######',
-        '#E.B.....#',
-        '##########',
-        '##########'
-      ], 62, 'One final shift. Complete the route home.')
-    ];
-
     // Difficulty ramp: learn, spikes, patrol drones, timed gates, then combinations.
     var LEVELS = [
       // 1–4: core Day/Night puzzle only.
@@ -590,7 +407,7 @@
 
     function isWalkable(x, y, mode) {
       var cell = tileAt(x, y);
-      if (cell === '#' || cell === 'O') return false;
+      if (cell === '#') return false;
       if (cell === 'D') return mode === 'day';
       if (cell === 'N') return mode === 'night';
       if (cell === 'T') return isGateOpen();
@@ -828,7 +645,9 @@
     function showCompletion(time, isBest) {
       clearModal();
       modalTitle.textContent = 'DELIVERY COMPLETE';
+      var target = game.currentLevel.parTimeSeconds;
       modalText.innerHTML = 'Level time: <strong>' + formatTime(time) + '</strong><br>' +
+        'Target: ' + formatTime(target) + (time <= target ? ' — beaten!' : '') + '<br>' +
         (isBest ? 'New best time!' : 'Best time: ' + formatTime(game.bestTimes[String(game.currentLevel.id)]));
       modalButtons.appendChild(button('NEXT LEVEL', function () {
         loadLevel(game.levelIndex + 1);
@@ -1056,16 +875,6 @@
         return;
       }
 
-      if (cell === 'O') {
-        ctx.fillStyle = '#04050d';
-        ctx.fillRect(x, y, TILE, TILE);
-        ctx.strokeStyle = 'rgba(145,96,213,.35)';
-        ctx.beginPath();
-        ctx.arc(x + TILE / 2, y + TILE / 2, 12 + Math.sin(time / 250 + gridX) * 3, 0, Math.PI * 2);
-        ctx.stroke();
-        return;
-      }
-
       var fill = '#26314a';
       var edge = '#465878';
       if (cell === 'D') {
@@ -1232,6 +1041,11 @@
       ctx.fillStyle = '#b9c6e9';
       ctx.font = '700 14px system-ui, sans-serif';
       ctx.fillText('LEVEL ' + String(levelData.id).padStart(2, '0') + ' — ' + levelData.name.toUpperCase(), 360, 31);
+      if (!game.levelsValidated) {
+        ctx.fillStyle = '#ff8397';
+        ctx.font = '700 12px system-ui, sans-serif';
+        ctx.fillText('LEVEL CHECK FAILED', 360, 52);
+      }
 
       drawIcon('battery', 695, 27, 20, '#fff58f', 1);
       ctx.fillStyle = '#f6f8ff';
@@ -1253,6 +1067,7 @@
       ctx.fillStyle = 'rgba(235,242,255,.83)';
       ctx.font = '600 13px system-ui, sans-serif';
       ctx.fillText('TIME ' + formatTime(currentElapsed()), 30, 530);
+      ctx.fillText('TARGET ' + formatTime(levelData.parTimeSeconds), 856, 530);
 
       var showHint = game.currentLevel.id === 1 && (game.hintMoveVisible || game.hintModeVisible);
       if (showHint) {
@@ -1394,7 +1209,7 @@
     function getWalkableForValidation(levelData, x, y, mode, mask, batteryPositions, exitPosition) {
       if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
       var cell = levelData.map[y][x];
-      if (cell === '#' || cell === 'O' || cell === '^') return false;
+      if (cell === '#' || cell === '^') return false;
       if (cell === 'D') return mode === 'day';
       if (cell === 'N') return mode === 'night';
       if (cell === 'E') return mask === (1 << batteryPositions.length) - 1;
@@ -1446,6 +1261,9 @@
     game.bestTimes = save.bestTimes;
     game.audioEnabled = save.audioEnabled;
     game.levelsValidated = validateLevels();
+    if (!game.levelsValidated) {
+      console.warn('NightShiftDelivery: level validation failed. A map may be unreachable or impossible to finish.');
+    }
     updateControls();
     loadLevel(0);
     window.requestAnimationFrame(render);
