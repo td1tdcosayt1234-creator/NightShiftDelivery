@@ -13,7 +13,7 @@
     var modalButtons = document.getElementById('modalButtons');
     var levelGrid = document.getElementById('levelGrid');
     var liveStatus = document.getElementById('liveStatus');
-    
+
     // Main Menu Elements
     var mainMenu = document.getElementById('mainMenu');
     var appContainer = document.getElementById('app');
@@ -23,10 +23,6 @@
     var exitButton = document.getElementById('exitButton');
     var robotCanvas = document.getElementById('robotCanvas');
     var robotCtx = robotCanvas ? robotCanvas.getContext('2d') : null;
-
-    console.log('achievementsButton:', achievementsButton);
-    console.log('settingsButton:', settingsButton);
-    console.log('modal:', modal);
 
     var WIDTH = 960;
     var HEIGHT = 540;
@@ -222,6 +218,9 @@
       game.elapsedBeforePause = 0;
       game.transitionAt = 0;
       game.fallAt = 0;
+      game.diedThisRun = false;
+      game.spikeDiedThisRun = false;
+      game.droneDiedThisRun = false;
       trackAchievement('levelStart', { levelId: game.currentLevel.id });
       hideModal();
       updateControls();
@@ -364,12 +363,15 @@
       if (dy > 0) game.player.facing = 'down';
       playSound('move');
       if (tileAt(nx, ny) === '^') {
-        startFall('Spikes hit the courier');
+        startFall('Spikes hit the courier', 'spike');
         return;
       }
       if (hasMobAt(nx, ny)) {
-        startFall('A patrol drone caught the courier');
+        startFall('A patrol drone caught the courier', 'drone');
         return;
+      }
+      if (tileAt(nx, ny) === 'T') {
+        trackAchievement('gatePassed');
       }
       collectBatteryAt(nx, ny);
       if (nx === game.exit.x && ny === game.exit.y && allBatteriesCollected()) {
@@ -397,7 +399,7 @@
       game.hintModeVisible = false;
       var nextMode = game.mode === 'day' ? 'night' : 'day';
       if (!isWalkable(game.player.x, game.player.y, nextMode)) {
-        startFall('The phase path faded away');
+        startFall('The phase path faded away', 'phase');
         return;
       }
       game.mode = nextMode;
@@ -408,10 +410,13 @@
       announce(game.mode === 'day' ? 'Day mode.' : 'Night mode.');
     }
 
-    function startFall(reason) {
+    function startFall(reason, cause) {
       if (game.state !== GameState.PLAYING) return;
       game.state = GameState.FALLING;
       game.fallAt = performance.now();
+      game.diedThisRun = true;
+      if (cause === 'spike') game.spikeDiedThisRun = true;
+      if (cause === 'drone') game.droneDiedThisRun = true;
       playSound('fall');
       trackAchievement('death');
       announce((reason || 'Unsafe move') + '. Restarting level.');
@@ -424,15 +429,15 @@
       if (game.state !== GameState.PLAYING) return;
       var standingTile = tileAt(game.player.x, game.player.y);
       if (standingTile === '^') {
-        startFall('Spikes hit the courier');
+        startFall('Spikes hit the courier', 'spike');
         return;
       }
       if (standingTile === 'T' && !isGateOpen()) {
-        startFall('The timed gate closed');
+        startFall('The timed gate closed', 'gate');
         return;
       }
       if (hasMobAt(game.player.x, game.player.y)) {
-        startFall('A patrol drone caught the courier');
+        startFall('A patrol drone caught the courier', 'drone');
       }
     }
 
@@ -1027,6 +1032,10 @@
     function render(time) {
       var delta = Math.min(.05, (time - lastFrame) / 1000);
       lastFrame = time;
+      if (game.state === GameState.PLAYING) {
+        if (game.mode === 'night') game.stats.nightModeTime += delta;
+        else game.stats.dayModeTime += delta;
+      }
       updateRain(delta);
       checkActiveDangers();
       drawBackground(time);
@@ -1044,6 +1053,8 @@
     }
 
     window.addEventListener('keydown', function (event) {
+      // Ignore game keys while the main menu is on screen.
+      if (mainMenu && !mainMenu.classList.contains('hidden')) return;
       var direction = directionFromKey(event.key);
       if (direction) {
         event.preventDefault();
@@ -1172,6 +1183,18 @@
     game.audioEnabled = save.audioEnabled;
     game.stats = save.stats || game.stats;
     game.unlockedAchievements = save.unlockedAchievements || {};
+    // Ensure stat fields added by later versions exist on old saves.
+    game.stats.completedLevels = game.stats.completedLevels || {};
+    game.stats.starredLevels = game.stats.starredLevels || {};
+    game.stats.attemptedLevels = game.stats.attemptedLevels || {};
+    game.stats.deathlessStreak = game.stats.deathlessStreak || 0;
+    game.stats.spikeDeathlessStreak = game.stats.spikeDeathlessStreak || 0;
+    game.stats.droneDeathlessStreak = game.stats.droneDeathlessStreak || 0;
+    game.stats.nightModeTime = game.stats.nightModeTime || 0;
+    game.stats.dayModeTime = game.stats.dayModeTime || 0;
+    // Session-scoped stats must not carry over from the previous session.
+    game.stats.sessionLevels = 0;
+    game.stats.currentRetries = 0;
     game.stats.sessionStartTime = Date.now();
     game.levelsValidated = validateLevels();
     if (!game.levelsValidated) {
@@ -1183,23 +1206,26 @@
     showMainMenu();
     
     // Menu button handlers
+    var renderLoopStarted = false;
     playButton.addEventListener('click', function() {
       hideMainMenu();
       // Start from last played level or level 0
       var startLevel = Math.max(0, Math.min(game.unlockedLevel - 1, LEVELS.length - 1));
       loadLevel(startLevel);
-      window.requestAnimationFrame(render);
+      // Only start one render loop, no matter how often Play is pressed.
+      if (!renderLoopStarted) {
+        renderLoopStarted = true;
+        window.requestAnimationFrame(render);
+      }
     });
-    
+
     achievementsButton.addEventListener('click', function(e) {
-      console.log('Achievements button clicked!');
       e.preventDefault();
       e.stopPropagation();
       showAchievements();
     });
-    
+
     settingsButton.addEventListener('click', function(e) {
-      console.log('Settings button clicked!');
       e.preventDefault();
       e.stopPropagation();
       showSettings();
@@ -1299,14 +1325,15 @@
       var hours = Math.floor(game.stats.totalPlayTime / 3600);
       var minutes = Math.floor((game.stats.totalPlayTime % 3600) / 60);
       document.getElementById('totalPlayTime').textContent = hours + 'h ' + minutes + 'm';
-      
-      // Update levels
-      var completed = game.stats.levelsCompleted || Math.max(0, game.unlockedLevel - 1);
-      document.getElementById('levelsCompleted').textContent = completed + ' / 35';
-      
-      // Update stars
-      document.getElementById('starsEarned').textContent = game.stats.starsCollected + ' / 35';
-      
+
+      // Distinct completed levels (not cumulative completions)
+      var completed = Object.keys(game.stats.completedLevels || {}).length;
+      document.getElementById('levelsCompleted').textContent = completed + ' / ' + LEVELS.length;
+
+      // Distinct starred levels
+      var starred = Object.keys(game.stats.starredLevels || {}).length;
+      document.getElementById('starsEarned').textContent = starred + ' / ' + LEVELS.length;
+
       // Update achievements
       var progress = window.getAchievementProgress(game.stats);
       document.getElementById('achievementCount').textContent = progress + '%';
@@ -1334,8 +1361,6 @@
     }
 
     function showAchievements() {
-      console.log('showAchievements called!');
-      console.log('modal element:', modal);
       clearModal();
       modalTitle.textContent = '🏆 ACHIEVEMENTS';
       
@@ -1368,13 +1393,9 @@
       modalText.appendChild(panel);
       modalButtons.appendChild(button('BACK', hideModal));
       modal.classList.remove('hidden');
-      console.log('modal.classList after remove hidden:', modal.classList);
-      console.log('modal display style:', window.getComputedStyle(modal).display);
     }
 
     function showSettings() {
-      console.log('showSettings called!');
-      console.log('modal element:', modal);
       clearModal();
       modalTitle.textContent = '⚙ SETTINGS';
       
@@ -1399,14 +1420,12 @@
       }, true));
       modalButtons.appendChild(button('◀ BACK', hideModal));
       modal.classList.remove('hidden');
-      console.log('modal.classList after remove hidden:', modal.classList);
-      console.log('modal display style:', window.getComputedStyle(modal).display);
     }
 
     // Track achievements
     function trackAchievement(event, data) {
       var stats = game.stats;
-      
+
       switch(event) {
         case 'batteryCollected':
           stats.batteriesCollected++;
@@ -1419,8 +1438,18 @@
           if (data.time < (stats.fastestLevel || 999)) {
             stats.fastestLevel = data.time;
           }
-          if (data.levelId === 35) {
+          if (data.levelId === LEVELS.length) {
             stats.level35Complete = true;
+          }
+          stats.completedLevels = stats.completedLevels || {};
+          stats.completedLevels[data.levelId] = true;
+          stats.deathlessStreak++;
+          var mapText = game.currentLevel.map.join('');
+          if (mapText.indexOf('^') !== -1) {
+            stats.spikeDeathlessStreak = game.spikeDiedThisRun ? 0 : stats.spikeDeathlessStreak + 1;
+          }
+          if (game.mobs.length > 0) {
+            stats.droneDeathlessStreak = game.droneDiedThisRun ? 0 : stats.droneDeathlessStreak + 1;
           }
           break;
         case 'modeSwitch':
@@ -1431,20 +1460,26 @@
           break;
         case 'death':
           stats.deathlessStreak = 0;
+          stats.spikeDeathlessStreak = 0;
+          stats.droneDeathlessStreak = 0;
           stats.currentRetries++;
           stats.maxRetries = Math.max(stats.maxRetries, stats.currentRetries);
           break;
         case 'levelStart':
           stats.levelsAttempted = Math.max(stats.levelsAttempted, data.levelId);
           stats.currentRetries = 0;
+          stats.attemptedLevels = stats.attemptedLevels || {};
+          stats.attemptedLevels[data.levelId] = true;
           break;
         case 'starEarned':
           stats.starsCollected++;
-          var zone = Math.ceil(data.levelId / (data.levelId <= 4 ? 4 : data.levelId <= 10 ? 6 : data.levelId <= 18 ? 8 : data.levelId <= 26 ? 8 : 9));
+          stats.starredLevels = stats.starredLevels || {};
+          stats.starredLevels[data.levelId] = true;
+          var zone = data.levelId <= 4 ? 1 : data.levelId <= 10 ? 2 : data.levelId <= 18 ? 3 : data.levelId <= 26 ? 4 : 5;
           stats['zone' + zone + 'Stars'] = (stats['zone' + zone + 'Stars'] || 0) + 1;
           break;
       }
-      
+
       // Check for new achievements
       for (var id in window.ACHIEVEMENTS) {
         if (!game.unlockedAchievements[id] && window.checkAchievement(id, stats)) {
@@ -1452,7 +1487,7 @@
           showAchievementUnlocked(window.ACHIEVEMENTS[id]);
         }
       }
-      
+
       saveProgress();
     }
 
@@ -1486,7 +1521,7 @@
       loadLevel: loadLevel,
       getState: function () {
         return {
-          level: game.currentLevel.id,
+          level: game.currentLevel ? game.currentLevel.id : 0,
           mode: game.mode,
           batteries: collectedCount(),
           totalBatteries: game.batteries.length,

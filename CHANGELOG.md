@@ -1,5 +1,18 @@
 # Changelog - Night Shift Delivery
 
+## Version 2.0.1 - Bugfix Update 🛠
+
+### Fixed
+- **All map rows are exactly 10 columns now** — 26 rows were 9 characters, which made the built-in level validation fail ("LEVEL CHECK FAILED") and left the rightmost column as a glitchy walkable void.
+- **7 unsolvable levels repaired** (5, 6, 9, 12, 14, 15, 17) — missing corridors and gate connectors restored so every level can actually be finished.
+- **Added the 17 missing Zone 4/5 levels (19–35)** that the menus, documentation and achievements already referenced — including "FINAL SHIFT" (12 ultra-fast drones, 300ms gate windows, 4 batteries, par 180s). All 35 levels are validated solvable on startup.
+- **Modal markup added to index.html** (`#modal`, `#modalCard`, `#modalTitle`, `#modalText`, `#levelGrid`, `#modalButtons`) — pause, level select, delivery-complete, achievements and settings screens all crashed on a null modal before.
+- **Achievements track distinct levels** (`completedLevels`, `starredLevels`, `attemptedLevels`) — "Delivery Master" can no longer be earned by replaying level 1 thirty-five times, and zone completions require finishing every level in that zone.
+- **Fixed the zone star mapping** — Zone 2–5 stars were previously credited to the wrong zone, blocking the Perfect Zone achievements.
+- **Fed the previously-dead achievement stats**: Day/Night time (Night Owl, Sun Worshipper), gate passes (Gate Crasher), and deathless / spike / drone streaks (Deathless, Spike Dancer, Ghost).
+- **Stability**: one render loop no matter how often Play is pressed, main menu ignores game keys, timer stays frozen while paused, best-time/star display uses real distinct counts, and `speedDemon`/`finalShift` return proper booleans.
+- **Dev tools**: `tools/validate.mjs` (row + solvability validator for all 35 levels) and `tools/smoke.mjs` (Node smoke test for the game API and achievement matrix).
+
 ## Version 2.0 - Major Expansion Update 🎮
 
 ### Added

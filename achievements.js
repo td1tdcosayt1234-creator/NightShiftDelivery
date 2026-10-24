@@ -230,6 +230,27 @@
     var ach = window.ACHIEVEMENTS[achievementId];
     if (!ach) return false;
 
+    // Sets of level ids, tracked per level (not cumulative counters)
+    var completed = stats.completedLevels || {};
+    var starred = stats.starredLevels || {};
+    var attempted = stats.attemptedLevels || {};
+
+    function countIn(map, from, to) {
+      var count = 0;
+      for (var key in map) {
+        var id = Number(key);
+        if (id >= from && id <= to) count++;
+      }
+      return count;
+    }
+
+    function allCompletedIn(from, to) {
+      for (var id = from; id <= to; id++) {
+        if (!completed[id]) return false;
+      }
+      return true;
+    }
+
     switch(achievementId) {
       case 'firstBattery':
         return stats.batteriesCollected >= 1;
@@ -238,17 +259,17 @@
       case 'firstSwitch':
         return stats.modeSwitches >= 1;
       case 'zone1Complete':
-        return stats.highestLevel >= 4;
+        return allCompletedIn(1, 4);
       case 'zone2Complete':
-        return stats.highestLevel >= 10;
+        return allCompletedIn(5, 10);
       case 'zone3Complete':
-        return stats.highestLevel >= 18;
+        return allCompletedIn(11, 18);
       case 'zone4Complete':
-        return stats.highestLevel >= 26;
+        return allCompletedIn(19, 26);
       case 'zone5Complete':
-        return stats.highestLevel >= 35;
+        return allCompletedIn(27, 35);
       case 'speedDemon':
-        return stats.fastestLevel && stats.fastestLevel < 10;
+        return Number(stats.fastestLevel || Infinity) < 10;
       case 'deathless':
         return stats.deathlessStreak >= 5;
       case 'marathonRunner':
@@ -262,31 +283,31 @@
       case 'gateRunner':
         return stats.gatesPassed >= 50;
       case 'allLevelsComplete':
-        return stats.levelsCompleted >= 35;
+        return countIn(completed, 1, 35) >= 35;
       case 'allStars':
-        return stats.starsCollected >= 35;
+        return countIn(starred, 1, 35) >= 35;
       case 'finalShift':
-        return stats.level35Complete;
+        return stats.level35Complete === true;
       case 'perfectGame':
-        return stats.starsCollected >= 35;
+        return countIn(starred, 1, 35) >= 35;
       case 'perfectZone1':
-        return stats.zone1Stars >= 4;
+        return countIn(starred, 1, 4) >= 4;
       case 'perfectZone2':
-        return stats.zone2Stars >= 6;
+        return countIn(starred, 5, 10) >= 6;
       case 'perfectZone3':
-        return stats.zone3Stars >= 8;
+        return countIn(starred, 11, 18) >= 8;
       case 'perfectZone4':
-        return stats.zone4Stars >= 8;
+        return countIn(starred, 19, 26) >= 8;
       case 'perfectZone5':
-        return stats.zone5Stars >= 9;
+        return countIn(starred, 27, 35) >= 9;
       case 'nightOwl':
-        return stats.nightModeTime > stats.dayModeTime;
+        return (stats.nightModeTime || 0) > (stats.dayModeTime || 0);
       case 'sunWorshipper':
-        return stats.dayModeTime > stats.nightModeTime;
+        return (stats.dayModeTime || 0) > (stats.nightModeTime || 0);
       case 'persistent':
         return stats.maxRetries >= 10;
       case 'explorer':
-        return stats.levelsAttempted >= 35;
+        return countIn(attempted, 1, 35) >= 35;
       default:
         return false;
     }
