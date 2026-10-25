@@ -335,14 +335,13 @@
       '#E.B.....#',
       '##########',
       '##########'
-    ], 105, 'Six drones! One is inside the gate column itself...', [
-      { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 300, offset: 0 },
-      { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 310, offset: 150 },
-      { x: 6, y: 3, axis: 'x', min: 4, max: 7, speed: 290, offset: 80 },
-      { x: 7, y: 3, axis: 'y', min: 1, max: 5, speed: 300, offset: 200 },
-      { x: 5, y: 5, axis: 'x', min: 2, max: 7, speed: 280, offset: 100 },
-      { x: 4, y: 3, axis: 'y', min: 1, max: 5, speed: 270, offset: 50 }
-    ], { period: 1900, openFor: 700, offset: 0 }),
+    ], 105, 'Five drones! Strategy over speed — coordinate your route to avoid patrols.', [
+      { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 310, offset: 0 },
+      { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 300, offset: 150 },
+      { x: 6, y: 3, axis: 'x', min: 4, max: 7, speed: 280, offset: 80 },
+      { x: 7, y: 3, axis: 'y', min: 1, max: 5, speed: 290, offset: 200 },
+      { x: 5, y: 5, axis: 'x', min: 2, max: 7, speed: 270, offset: 100 }
+    ], { period: 1950, openFor: 750, offset: 50 }),
 
     level(26, 'Chaos Gate', 'night', [
       '##########',
@@ -353,14 +352,13 @@
       '#E.....B.#',
       '##########',
       '##########'
-    ], 115, 'Zone 4 finale: six drones, one relentless gate.', [
+    ], 115, 'Zone 4 finale: five drones, one relentless gate — plan your path around the columns.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 6, speed: 260, offset: 0 },
       { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 270, offset: 120 },
       { x: 6, y: 3, axis: 'x', min: 3, max: 7, speed: 250, offset: 220 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 280, offset: 60 },
-      { x: 6, y: 5, axis: 'x', min: 3, max: 7, speed: 240, offset: 180 },
-      { x: 8, y: 3, axis: 'y', min: 1, max: 5, speed: 260, offset: 300 }
-    ], { period: 1800, openFor: 620, offset: 0 }),
+      { x: 6, y: 5, axis: 'x', min: 3, max: 7, speed: 240, offset: 180 }
+    ], { period: 1900, openFor: 660, offset: 80 }),
 
     // ──────────────────────── ZONE 5: NIGHTMARE (27-35) ───────────────────────
     level(27, 'Nightmare Begins', 'day', [
@@ -372,16 +370,15 @@
       '#E.....^.#',
       '##########',
       '##########'
-    ], 125, 'Zone 5. Eight drones and chained gates. Real courier work starts now.', [
+    ], 125, 'Zone 5. Seven drones and chained gates. Strategic timing gets you through.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 250, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 260, offset: 150 },
       { x: 5, y: 3, axis: 'x', min: 2, max: 7, speed: 240, offset: 80 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 250, offset: 160 },
       { x: 4, y: 5, axis: 'x', min: 2, max: 5, speed: 230, offset: 0 },
       { x: 8, y: 2, axis: 'y', min: 1, max: 3, speed: 240, offset: 100 },
-      { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 260, offset: 120 },
-      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 220, offset: 60 }
-    ], { period: 1700, openFor: 580, offset: 0 }),
+      { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 260, offset: 120 }
+    ], { period: 1750, openFor: 620, offset: 80 }),
 
     level(28, 'Gate Sprint', 'night', [
       '##########',
@@ -392,16 +389,15 @@
       '#E.....^.#',
       '##########',
       '##########'
-    ], 132, 'Same gates, shorter breath. Do not stand inside the door!', [
+    ], 132, 'Same gates, shorter breath. Time your jumps through the columns to avoid the drones.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 240, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 250, offset: 150 },
       { x: 5, y: 3, axis: 'x', min: 2, max: 7, speed: 230, offset: 80 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 240, offset: 160 },
       { x: 4, y: 5, axis: 'x', min: 2, max: 5, speed: 220, offset: 0 },
       { x: 8, y: 2, axis: 'y', min: 1, max: 3, speed: 230, offset: 100 },
-      { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 250, offset: 120 },
-      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 210, offset: 60 }
-    ], { period: 1600, openFor: 540, offset: 200 }),
+      { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 250, offset: 120 }
+    ], { period: 1700, openFor: 580, offset: 80 }),
 
     level(29, 'Spike Storm', 'day', [
       '##########',
@@ -412,7 +408,7 @@
       '#E.....^.#',
       '##########',
       '##########'
-    ], 140, 'Nine drones and only one safe door per lane!', [
+    ], 140, 'Eight drones and one safe door per lane! Reduce drone density for more accessible gameplay.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 220, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 230, offset: 150 },
       { x: 5, y: 3, axis: 'x', min: 2, max: 6, speed: 210, offset: 80 },
@@ -420,9 +416,8 @@
       { x: 4, y: 5, axis: 'x', min: 2, max: 5, speed: 200, offset: 0 },
       { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 225, offset: 120 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 220, offset: 180 },
-      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 210, offset: 60 },
-      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 235, offset: 40 }
-    ], { period: 1500, openFor: 520, offset: 300 }),
+      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 210, offset: 60 }
+    ], { period: 1550, openFor: 560, offset: 300 }),
 
     level(30, 'Midnight Rush', 'night', [
       '##########',
@@ -433,7 +428,7 @@
       '#E.....^.#',
       '##########',
       '##########'
-    ], 148, 'Triple batteries. Nine hunters. shorter doors every level!', [
+    ], 148, 'Triple batteries. Eight hunters. Shorter doors every level!', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 215, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 225, offset: 150 },
       { x: 6, y: 3, axis: 'x', min: 2, max: 7, speed: 205, offset: 80 },
@@ -441,9 +436,8 @@
       { x: 4, y: 5, axis: 'x', min: 2, max: 5, speed: 195, offset: 0 },
       { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 220, offset: 120 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 215, offset: 180 },
-      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 205, offset: 60 },
-      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 230, offset: 40 }
-    ], { period: 1400, openFor: 500, offset: 100 }),
+      { x: 6, y: 5, axis: 'x', min: 5, max: 6, speed: 205, offset: 60 }
+    ], { period: 1450, openFor: 540, offset: 120 }),
 
     level(31, 'Drone Cyclone', 'day', [
       '##########',
@@ -454,7 +448,7 @@
       '#E.......#',
       '##########',
       '##########'
-    ], 155, 'A cyclone of ten drones spins around you!', [
+    ], 155, 'A cyclone of nine drones spins around you!', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 200, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 210, offset: 150 },
       { x: 6, y: 3, axis: 'x', min: 2, max: 7, speed: 190, offset: 80 },
@@ -463,9 +457,8 @@
       { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 205, offset: 120 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 200, offset: 180 },
       { x: 6, y: 5, axis: 'x', min: 5, max: 7, speed: 190, offset: 60 },
-      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 215, offset: 40 },
-      { x: 5, y: 3, axis: 'x', min: 2, max: 6, speed: 200, offset: 300 }
-    ], { period: 1300, openFor: 460, offset: 200 }),
+      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 215, offset: 40 }
+    ], { period: 1350, openFor: 480, offset: 200 }),
 
     level(32, 'Battery Vault', 'night', [
       '##########',
@@ -476,7 +469,7 @@
       '#E......^#',
       '##########',
       '##########'
-    ], 162, 'Four batteries. Ten drones. Tiniest doors yet.', [
+    ], 162, 'Four batteries. Nine drones. Tiniest doors yet.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 190, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 200, offset: 150 },
       { x: 6, y: 3, axis: 'x', min: 2, max: 7, speed: 180, offset: 80 },
@@ -485,9 +478,8 @@
       { x: 3, y: 3, axis: 'y', min: 2, max: 4, speed: 195, offset: 120 },
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 190, offset: 180 },
       { x: 6, y: 5, axis: 'x', min: 5, max: 7, speed: 180, offset: 60 },
-      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 205, offset: 40 },
-      { x: 5, y: 3, axis: 'x', min: 2, max: 6, speed: 190, offset: 300 }
-    ], { period: 1200, openFor: 430, offset: 100 }),
+      { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 205, offset: 40 }
+    ], { period: 1250, openFor: 460, offset: 100 }),
 
     level(33, 'Hyperspeed', 'day', [
       '##########',
@@ -498,7 +490,7 @@
       '#E...^.^.#',
       '##########',
       '##########'
-    ], 170, 'Eleven drones at hyperspeed. Breathe between the gates.', [
+    ], 170, 'Ten drones at hyperspeed. Breathe between the gates.', [
       { x: 5, y: 1, axis: 'x', min: 2, max: 7, speed: 160, offset: 0 },
       { x: 1, y: 3, axis: 'y', min: 2, max: 4, speed: 170, offset: 150 },
       { x: 6, y: 3, axis: 'x', min: 2, max: 6, speed: 150, offset: 80 },
@@ -508,9 +500,8 @@
       { x: 7, y: 3, axis: 'y', min: 2, max: 4, speed: 160, offset: 180 },
       { x: 6, y: 5, axis: 'x', min: 5, max: 7, speed: 150, offset: 60 },
       { x: 2, y: 3, axis: 'y', min: 2, max: 4, speed: 175, offset: 40 },
-      { x: 5, y: 3, axis: 'x', min: 2, max: 5, speed: 160, offset: 300 },
-      { x: 4, y: 3, axis: 'y', min: 2, max: 4, speed: 170, offset: 220 }
-    ], { period: 1000, openFor: 400, offset: 150 }),
+      { x: 5, y: 3, axis: 'x', min: 2, max: 5, speed: 160, offset: 300 }
+    ], { period: 1050, openFor: 430, offset: 150 }),
 
     level(34, 'Spike Monsoon', 'night', [
       '##########',
@@ -557,7 +548,7 @@
       { x: 5, y: 3, axis: 'x', min: 2, max: 5, speed: 100, offset: 300 },
       { x: 6, y: 1, axis: 'x', min: 6, max: 8, speed: 105, offset: 200 },
       { x: 3, y: 5, axis: 'x', min: 3, max: 4, speed: 90, offset: 260 }
-    ], { period: 800, openFor: 300, offset: 0 })
+    ], { period: 800, openFor: 300, offset: 0 }),
   ];
 
   window.ZONE_THEMES = {
