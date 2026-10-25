@@ -1627,4 +1627,13 @@
 
 
 // CrazyGames SDK init
-if (window.CrazyGames && window.CrazyGames.SDK) { window.CrazyGames.SDK.init(); }
+(function initCrazyGames() {
+  try {
+    if (window.CrazyGames && window.CrazyGames.SDK && typeof window.CrazyGames.SDK.init === 'function') {
+      var p = window.CrazyGames.SDK.init();
+      if (p && typeof p.then === 'function') {
+        p.catch(function () {});
+      }
+    }
+  } catch (e) {}
+})();
