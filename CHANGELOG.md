@@ -1,5 +1,20 @@
 # Changelog - Night Shift Delivery
 
+## Version 2.0.2 - Bugfix Update 🧰
+
+### Fixed
+- **Achievements and Settings now actually open from the main menu** — the modal markup lives inside `#app`, which stayed `display:none` under the menu overlay, so both menu buttons looked dead. The menu now swaps out for the panel and returns via "◀ BACK".
+- **"🔁 Never Give Up" is reachable again** — the retry counter was reset to 0 by *every* level load (including the automatic reload after each death), so `maxRetries` could never exceed 1. It now only resets when a different level starts.
+- **★ badges and achievement stats always agree** — completion time is quantized once (`toFixed(1)`) before the star comparison, so the level-select badge can no longer show ★ while `starredLevels` (Perfect Zone(s), Star Collector, Absolute Perfection) records none.
+- **Speed Demon recognizes instant completions** — a recorded best time of exactly `0` was treated as unset by the `fastestLevel || Infinity` check; the null-safe check also stops `undefined` from leaking into comparisons.
+- **Tab switching no longer kills the courier** — the wall-clock level timer and drones kept running while the tab was hidden, causing unfair gate/drone deaths on return. The game now auto-pauses the moment the tab becomes hidden, and the render frame clock resyncs when Play starts.
+- **Audio comes back on iOS Safari** — the AudioContext can start suspended under autoplay policy; `initAudio()` now resumes it whenever it is suspended.
+- **Play time is no longer double counted** — the EXIT button and the `beforeunload` handler both charged the same wall-clock stretch; the session clock is zeroed after the exit accounting, and a failed `window.close()` now falls back to the main menu instead of a frozen-looking app.
+- **Vertical drones draw vertical rails** — drone-rail markers (`M`) now pick their orientation from the patrol that actually covers the tile; vertical patrols used to render a horizontal rail.
+- **Old saves upgrade safely** — every numeric/flag stat field is backfilled on load, so `undefined` can no longer leak `NaN` into `Math.max()` pairs and permanently corrupt stats.
+- **Achievement toasts stack cleanly** — a second unlock no longer hides the first toast mid-animation (its 4 s hide timer is restarted per toast).
+- **Dev tools**: `tools/validate.mjs` and `tools/smoke.mjs` DOM stubs updated so the smoke tests keep covering the new listeners used by game.js.
+
 ## Version 2.0.1 - Bugfix Update 🛠
 
 ### Fixed

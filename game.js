@@ -288,10 +288,16 @@
     }
 
     function initAudio() {
-      if (!game.audioEnabled || audioContext) return;
+      if (!game.audioEnabled) return;
       try {
-        var Ctx = window.AudioContext || window.webkitAudioContext;
-        if (Ctx) audioContext = new Ctx();
+        if (!audioContext) {
+          var Ctx = window.AudioContext || window.webkitAudioContext;
+          if (Ctx) audioContext = new Ctx();
+        }
+        // Browsers may leave the context suspended (autoplay policy, iOS Safari).
+        if (audioContext && audioContext.state === 'suspended' && audioContext.resume) {
+          audioContext.resume();
+        }
       } catch (error) {
         audioContext = null;
       }
@@ -452,13 +458,15 @@
     function completeLevel() {
       if (game.state !== GameState.PLAYING) return;
       game.state = GameState.LEVEL_COMPLETE;
-      var time = currentElapsed();
+      // Quantize the time ONCE so the saved best, the modal display, the ★ badge
+      // and the achievement stats all judge the exact same number.
+      var time = Number(currentElapsed().toFixed(1));
       var id = String(game.currentLevel.id);
       var oldBest = Number(game.bestTimes[id]);
       var isBest = !oldBest || time < oldBest;
       var beatPar = time <= game.currentLevel.parTimeSeconds;
-      
-      if (isBest) game.bestTimes[id] = Number(time.toFixed(1));
+
+      if (isBest) game.bestTimes[id] = time;
       if (game.currentLevel.id < LEVELS.length) {
         game.unlockedLevel = Math.max(game.unlockedLevel, game.currentLevel.id + 1);
       }
@@ -842,12 +850,25 @@
         ctx.restore();
       }
       if (cell === 'M') {
+        // Draw the rail in the direction drones actually move on this tile —
+        // vertical patrols used to get a horizontal rail, which read as a bug.
+        var horizRail = game.mobs.some(function (mob) {
+          return mob.axis === 'x' && gridY === mob.y && gridX >= mob.min && gridX <= mob.max;
+        });
+        var vertRail = game.mobs.some(function (mob) {
+          return mob.axis === 'y' && gridX === mob.x && gridY >= mob.min && gridY <= mob.max;
+        });
         ctx.strokeStyle = '#82bcff';
         ctx.globalAlpha = .65;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(x + 9, y + TILE / 2);
-        ctx.lineTo(x + TILE - 9, y + TILE / 2);
+        if (vertRail && !horizRail) {
+          ctx.moveTo(x + TILE / 2, y + 9);
+          ctx.lineTo(x + TILE / 2, y + TILE - 9);
+        } else {
+          ctx.moveTo(x + 9, y + TILE / 2);
+          ctx.lineTo(x + TILE - 9, y + TILE / 2);
+        }
         ctx.stroke();
         ctx.globalAlpha = 1;
       }
@@ -1192,6 +1213,25 @@
     game.stats.droneDeathlessStreak = game.stats.droneDeathlessStreak || 0;
     game.stats.nightModeTime = game.stats.nightModeTime || 0;
     game.stats.dayModeTime = game.stats.dayModeTime || 0;
+    // Backfill every other numeric/flag field too — an undefined value would
+    // leak NaN into Math.max() pairs and permanently break stat comparisons.
+    game.stats.batteriesCollected = game.stats.batteriesCollected || 0;
+    game.stats.totalBatteries = game.stats.totalBatteries || 0;
+    game.stats.levelsCompleted = game.stats.levelsCompleted || 0;
+    game.stats.modeSwitches = game.stats.modeSwitches || 0;
+    game.stats.highestLevel = game.stats.highestLevel || 1;
+    game.stats.fastestLevel = game.stats.fastestLevel || null;
+    game.stats.gatesPassed = game.stats.gatesPassed || 0;
+    game.stats.starsCollected = game.stats.starsCollected || 0;
+    game.stats.level35Complete = game.stats.level35Complete === true;
+    game.stats.maxRetries = game.stats.maxRetries || 0;
+    game.stats.levelsAttempted = game.stats.levelsAttempted || 0;
+    game.stats.totalPlayTime = game.stats.totalPlayTime || 0;
+    game.stats.zone1Stars = game.stats.zone1Stars || 0;
+    game.stats.zone2Stars = game.stats.zone2Stars || 0;
+    game.stats.zone3Stars = game.stats.zone3Stars || 0;
+    game.stats.zone4Stars = game.stats.zone4Stars || 0;
+    game.stats.zone5Stars = game.stats.zone5Stars || 0;
     // Session-scoped stats must not carry over from the previous session.
     game.stats.sessionLevels = 0;
     game.stats.currentRetries = 0;
@@ -1215,6 +1255,9 @@
       // Only start one render loop, no matter how often Play is pressed.
       if (!renderLoopStarted) {
         renderLoopStarted = true;
+        // Sync with the frame clock: the menu may have been open for a while
+        // and a stale lastFrame would produce one huge first delta.
+        lastFrame = performance.now();
         window.requestAnimationFrame(render);
       }
     });
@@ -1222,24 +1265,34 @@
     achievementsButton.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      // The modal lives inside #app and the menu overlay sits on top of it —
+      // swap the overlays first or the panel would render out of sight.
+      openMainMenuOverlay();
       showAchievements();
     });
 
     settingsButton.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
+      openMainMenuOverlay();
       showSettings();
     });
     
     exitButton.addEventListener('click', function() {
       if (confirm('Exit Night Shift Delivery?')) {
-        // Save before exit
+        // Save before exit. Zero the session clock afterwards so the
+        // beforeunload handler does not count this very stretch a second time.
         if (game.stats.sessionStartTime > 0) {
-          var sessionTime = Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
-          game.stats.totalPlayTime += sessionTime;
-          saveProgress();
+          game.stats.totalPlayTime += Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
+          game.stats.sessionStartTime = 0;
         }
+        saveProgress();
         window.close();
+        // Tabs not opened by script cannot be closed via window.close().
+        // Fall back to the main menu instead of a dead-looking app.
+        window.setTimeout(function () {
+          showMainMenu();
+        }, 150);
       }
     });
     
@@ -1249,6 +1302,15 @@
         var sessionTime = Math.floor((Date.now() - game.stats.sessionStartTime) / 1000);
         game.stats.totalPlayTime += sessionTime;
         saveProgress();
+      }
+    });
+
+    // The level clock and the drones run on wall time, so leaving the tab
+    // caused unfair deaths (gate closed / drone arrived while the player was
+    // watching another tab). Auto-pause the moment the tab gets hidden.
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden && game.state === GameState.PLAYING && game.currentLevel) {
+        showPause();
       }
     });
 
@@ -1339,6 +1401,18 @@
       document.getElementById('achievementCount').textContent = progress + '%';
     }
     
+    function openMainMenuOverlay() {
+      mainMenu.classList.add('hidden');
+      appContainer.style.display = 'block';
+    }
+
+    function closeMainMenuOverlay() {
+      hideModal();
+      mainMenu.classList.remove('hidden');
+      appContainer.style.display = 'none';
+      drawMenuRobot();
+    }
+
     function showMainMenu() {
       mainMenu.classList.remove('hidden');
       appContainer.style.display = 'none';
@@ -1391,7 +1465,7 @@
       }
       
       modalText.appendChild(panel);
-      modalButtons.appendChild(button('BACK', hideModal));
+      modalButtons.appendChild(button('◀ BACK', closeMainMenuOverlay, true));
       modal.classList.remove('hidden');
     }
 
@@ -1418,7 +1492,7 @@
           location.reload();
         }
       }, true));
-      modalButtons.appendChild(button('◀ BACK', hideModal));
+      modalButtons.appendChild(button('◀ BACK', closeMainMenuOverlay, true));
       modal.classList.remove('hidden');
     }
 
@@ -1435,7 +1509,7 @@
           stats.levelsCompleted++;
           stats.sessionLevels++;
           stats.highestLevel = Math.max(stats.highestLevel, data.levelId);
-          if (data.time < (stats.fastestLevel || 999)) {
+          if (data.time < (stats.fastestLevel == null ? 999 : stats.fastestLevel)) {
             stats.fastestLevel = data.time;
           }
           if (data.levelId === LEVELS.length) {
@@ -1467,7 +1541,14 @@
           break;
         case 'levelStart':
           stats.levelsAttempted = Math.max(stats.levelsAttempted, data.levelId);
-          stats.currentRetries = 0;
+          // Only a *different* level clears the retry counter. Resetting on
+          // every load made maxRetries impossible to build beyond 1 (the
+          // automatic reload after every death also calls levelStart), which
+          // left the 'persistent' achievement permanently unobtainable.
+          if (game.lastStartedLevelId !== data.levelId) {
+            stats.currentRetries = 0;
+            game.lastStartedLevelId = data.levelId;
+          }
           stats.attemptedLevels = stats.attemptedLevels || {};
           stats.attemptedLevels[data.levelId] = true;
           break;
@@ -1509,8 +1590,12 @@
       playSound('unlock');
       announce('Achievement unlocked: ' + ach.name);
       
-      // Hide after 4 seconds
-      setTimeout(function() {
+      // Hide after 4 seconds — clear the pending timer from the previous
+      // toast so a rapid second unlock does not hide it mid-flight.
+      if (showAchievementUnlocked.timer) {
+        window.clearTimeout(showAchievementUnlocked.timer);
+      }
+      showAchievementUnlocked.timer = window.setTimeout(function() {
         notif.classList.remove('show');
       }, 4000);
     }

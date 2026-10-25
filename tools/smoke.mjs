@@ -28,7 +28,9 @@ globalThis.window = globalThis;
 globalThis.document = {
   getElementById(id) { if (!elements.has(id)) elements.set(id, makeElement()); return elements.get(id); },
   createElement: () => makeElement(),
-  querySelectorAll: () => []
+  querySelectorAll: () => [],
+  addEventListener: noop,
+  removeEventListener: noop
 };
 globalThis.localStorage = { getItem: () => null, setItem: noop, removeItem: noop };
 globalThis.requestAnimationFrame = () => 0;

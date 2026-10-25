@@ -269,7 +269,9 @@
       case 'zone5Complete':
         return allCompletedIn(27, 35);
       case 'speedDemon':
-        return Number(stats.fastestLevel || Infinity) < 10;
+        // A recorded time of exactly 0 is real (and fast!) — do not treat it
+        // as "never set" via a falsy check.
+        return stats.fastestLevel != null && Number(stats.fastestLevel) < 10;
       case 'deathless':
         return stats.deathlessStreak >= 5;
       case 'marathonRunner':
