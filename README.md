@@ -119,6 +119,7 @@ By Level 35, you'll face:
 - LocalStorage for save progress
 - Web Audio API for sound effects
 - Level validation system
+- CrazyGames SDK integration
 - Accessibility features (ARIA labels, keyboard support)
 
 ## 🚀 Run the Game
