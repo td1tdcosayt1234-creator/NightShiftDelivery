@@ -2,6 +2,9 @@
 
 ## Version 2.0.2 - Bugfix Update 🧰
 
+### Added
+- **🛠 DEV button** on the board (top-left) — opens the level select in dev mode with every level unlocked, so each of the 35 levels can be loaded and tested with a single click. The live level is auto-paused behind the picker.
+
 ### Fixed
 - **Achievements and Settings now actually open from the main menu** — the modal markup lives inside `#app`, which stayed `display:none` under the menu overlay, so both menu buttons looked dead. The menu now swaps out for the panel and returns via "◀ BACK".
 - **"🔁 Never Give Up" is reachable again** — the retry counter was reset to 0 by *every* level load (including the automatic reload after each death), so `maxRetries` could never exceed 1. It now only resets when a different level starts.

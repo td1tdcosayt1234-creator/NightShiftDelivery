@@ -68,6 +68,7 @@ The ultimate endgame challenge for expert players.
 - **Mode Button**: Switch between Day/Night
 - **Swipe on Board**: Quick directional movement
 - **Utility Buttons**: Restart, Pause, Sound
+- **🛠 DEV Button** (top-left of the board): opens the level select with **every level unlocked** — click any level to test it instantly
 
 ## 🎨 Visual Features
 

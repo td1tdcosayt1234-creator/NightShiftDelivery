@@ -7,6 +7,7 @@
     var restartButton = document.getElementById('restartButton');
     var pauseButton = document.getElementById('pauseButton');
     var soundButton = document.getElementById('soundButton');
+    var devButton = document.getElementById('devButton');
     var modal = document.getElementById('modal');
     var modalTitle = document.getElementById('modalTitle');
     var modalText = document.getElementById('modalText');
@@ -560,10 +561,12 @@
       announce('Game resumed.');
     }
 
-    function showLevelSelect() {
+    function showLevelSelect(devUnlocked) {
       clearModal();
       modalTitle.textContent = 'CITY ROUTES';
-      modalText.textContent = 'Choose an unlocked delivery.';
+      modalText.textContent = devUnlocked
+        ? 'Dev mode — every level unlocked. Click to test directly.'
+        : 'Choose an unlocked delivery.';
       levelGrid.hidden = false;
       
       var zones = [
@@ -582,7 +585,7 @@
         
         LEVELS.forEach(function (levelData, index) {
           if (levelData.id >= zone.start && levelData.id <= zone.end) {
-            var unlocked = levelData.id <= game.unlockedLevel;
+            var unlocked = devUnlocked || levelData.id <= game.unlockedLevel;
             var entry = document.createElement('button');
             var best = Number(game.bestTimes[String(levelData.id)]);
             var starred = best && best <= levelData.parTimeSeconds;
@@ -1122,6 +1125,12 @@
       else if (game.state === GameState.PAUSED) resumeGame();
     });
     soundButton.addEventListener('click', toggleSound);
+    devButton.addEventListener('click', function () {
+      // 🛠 DEV: pause the live level first (drones/gates keep running off the
+      // clock otherwise) and open the picker with every level unlocked.
+      if (game.state === GameState.PLAYING) showPause();
+      showLevelSelect(true);
+    });
 
     function toggleSound() {
       game.audioEnabled = !game.audioEnabled;
