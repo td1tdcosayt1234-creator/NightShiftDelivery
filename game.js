@@ -1625,3 +1625,6 @@
     };
   }());
 
+
+// CrazyGames SDK init
+if (window.CrazyGames && window.CrazyGames.SDK) { window.CrazyGames.SDK.init(); }
